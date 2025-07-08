@@ -39,81 +39,162 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4 sm:p-6 md:p-10">
-      <div className="w-full max-w-2xl">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-2">AI Video to GIF Generator ⚡️</h1>
-          <p className="text-lg text-gray-400">Turn any YouTube video into captioned GIFs instantly.</p>
-        </header>
+    <div className="app-container">
+      
+      {/* Header */}
+      <header className="header">
+        <div className="header-content">
+          <h1 className="main-title gradient-text">
+            AI Video to GIF
+          </h1>
+          <p className="subtitle">
+            Transform YouTube videos into perfect GIFs with AI-powered captions ✨
+          </p>
+          <div className="features">
+            <span className="feature-item">
+              <div className="status-dot status-green"></div>
+              AI Powered
+            </span>
+            <span className="feature-item">
+              <div className="status-dot status-blue"></div>
+              Smart Captions
+            </span>
+            <span className="feature-item">
+              <div className="status-dot status-purple"></div>
+              Instant Results
+            </span>
+          </div>
+        </div>
+      </header>
 
-        <main>
-          <form onSubmit={handleSubmit} className="bg-gray-800 p-6 rounded-lg shadow-lg space-y-4">
-            <div>
-              <label htmlFor="prompt" className="block text-sm font-medium text-gray-300 mb-1">
-                GIF Theme or Quote
-              </label>
-              <input
-                type="text"
-                id="prompt"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                placeholder="e.g., 'funny moments', 'are you not entertained?'"
-                required
-              />
+      {/* Main Content */}
+      <main className="main-content">
+        
+        {/* Form */}
+        <div className="form-container glass">
+          <form onSubmit={handleSubmit} className="form">
+            
+            {/* Inputs */}
+            <div className="input-grid">
+              <div className="input-group">
+                <label className="input-label">
+                  🎯 What moments do you want?
+                </label>
+                <input
+                  type="text"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  className="input-field"
+                  placeholder="funny moments, epic fails, quotes..."
+                  required
+                />
+              </div>
+              
+              <div className="input-group">
+                <label className="input-label">
+                  🎬 YouTube URL
+                </label>
+                <input
+                  type="url"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  className="input-field"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label htmlFor="youtube_url" className="block text-sm font-medium text-gray-300 mb-1">
-                YouTube URL
-              </label>
-              <input
-                type="url"
-                id="youtube_url"
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                placeholder="https://www.youtube.com/watch?v=..."
-                required
-              />
-            </div>
+
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 font-bold py-3 px-4 rounded-md disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors duration-300"
+              className="submit-button"
             >
-              {isLoading ? 'Generating...' : 'Create GIFs'}
+              {isLoading ? (
+                <div className="button-loading">
+                  <div className="spinner"></div>
+                  Creating your GIFs...
+                </div>
+              ) : (
+                '🚀 Create GIFs'
+              )}
             </button>
           </form>
+        </div>
 
-          {error && <div className="mt-6 bg-red-900/50 text-red-300 p-4 rounded-md">{error}</div>}
-
-          {isLoading && (
-            <div className="mt-8 text-center">
-              <p className="text-xl">Brewing your GIFs... please wait a moment! 🧙‍♂️</p>
-            </div>
-          )}
-
-          {gifs.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold mb-4 text-center">Your GIFs are Ready!</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {gifs.map((gif, index) => (
-                  <div key={index} className="bg-gray-800 rounded-lg overflow-hidden shadow-lg">
-                    <img src={gif} alt={`Generated GIF ${index + 1}`} className="w-full h-auto" />
-                    <a
-                      href={gif}
-                      download
-                      className="block text-center bg-indigo-600 hover:bg-indigo-700 w-full py-2 font-semibold transition-colors duration-300"
-                    >
-                      Download
-                    </a>
-                  </div>
-                ))}
+        {/* Error */}
+        {error && (
+          <div className="error-container">
+            <div className="error-box">
+              <div className="error-content">
+                <span>⚠️</span>
+                <span>{error}</span>
               </div>
             </div>
-          )}
-        </main>
-      </div>
+          </div>
+        )}
+
+        {/* Loading */}
+        {isLoading && (
+          <div className="loading-section">
+            <div className="loading-card glass-card">
+              <div className="loading-spinner"></div>
+              <h3 className="loading-title">Creating Magic...</h3>
+              <p className="loading-text">Analyzing video and generating GIFs</p>
+            </div>
+          </div>
+        )}
+
+        {/* Results */}
+        {gifs.length > 0 && (
+          <div className="results-section animate-fade-up">
+            <div className="results-header">
+              <h2 className="results-title gradient-text-green">
+              Your GIFs are Ready!
+              </h2>
+              <p className="results-subtitle">
+                {gifs.length} amazing GIFs created with AI-powered captions
+              </p>
+            </div>
+            
+            <div className="gif-grid">
+              {gifs.map((gif, index) => (
+                <div 
+                  key={index} 
+                  className="gif-card glass-card"
+                >
+                  {/* GIF Image */}
+                  <div className="gif-image-container">
+                    <img 
+                      src={gif} 
+                      alt={`GIF ${index + 1}`} 
+                      className="gif-image"
+                    />
+                    <div className="gif-number">
+                      #{index + 1}
+                    </div>
+                  </div>
+                  
+                  {/* Download Button */}
+                  <div className="gif-content">
+                    <h3 className="gif-title">AI Generated GIF</h3>
+                    <p className="gif-description">Perfect moment with smart captions</p>
+                    <a
+                      href={gif}
+                      download={`gif-${index + 1}.gif`}
+                      className="download-button"
+                    >
+                      📥 Download GIF
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+
     </div>
   );
 }

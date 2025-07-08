@@ -84,9 +84,12 @@ def find_relevant_segments(transcript, prompt, count=3):
     if len(scored_segments) < count:
         print("DEBUG: Need more segments, trying broader search...")
         all_prompt_words = set(prompt.lower().split())
+        # Use start times to check if already added
+        used_start_times = {item['segment'].start for item in scored_segments}
+        
         for segment in transcript:
             # Skip if already added
-            if any(item['segment'] == segment for item in scored_segments):
+            if segment.start in used_start_times:
                 continue
                 
             text = segment.text.lower()
@@ -94,13 +97,17 @@ def find_relevant_segments(transcript, prompt, count=3):
             if score > 0:
                 print(f"DEBUG: Broad search - Found segment (score {score}): '{segment.text[:100]}...'")
                 scored_segments.append({'segment': segment, 'score': score})
+                used_start_times.add(segment.start)
     
     # Strategy 3: If still not enough, try substring matching
     if len(scored_segments) < count:
         print("DEBUG: Still need more segments, trying substring matching...")
+        # Use start times to check if already added
+        used_start_times = {item['segment'].start for item in scored_segments}
+        
         for segment in transcript:
             # Skip if already added
-            if any(item['segment'] == segment for item in scored_segments):
+            if segment.start in used_start_times:
                 continue
                 
             text = segment.text.lower()
@@ -111,14 +118,15 @@ def find_relevant_segments(transcript, prompt, count=3):
                 if substring in text and substring.strip():
                     print(f"DEBUG: Substring match found: '{segment.text[:100]}...'")
                     scored_segments.append({'segment': segment, 'score': 0.5})
+                    used_start_times.add(segment.start)
                     break
     
     # Strategy 4: Final fallback - ensure we always have enough segments
     if len(scored_segments) < count:
         print(f"DEBUG: Still only have {len(scored_segments)} segments, adding random segments to reach {count}...")
-        # Get segments that haven't been added yet
-        used_segments = {item['segment'] for item in scored_segments}
-        available_segments = [seg for seg in transcript if seg not in used_segments]
+        # Get segments that haven't been added yet - use start times to identify unique segments
+        used_start_times = {item['segment'].start for item in scored_segments}
+        available_segments = [seg for seg in transcript if seg.start not in used_start_times]
         
         # Add segments from different parts of the video
         if available_segments:
