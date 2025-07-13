@@ -15,7 +15,7 @@ export default function App() {
     setGifs([]);
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/generate-gifs', {
+      const response = await fetch('https://your-backend-name.onrender.com/api/generate-gifs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
