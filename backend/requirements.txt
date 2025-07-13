@@ -2,7 +2,7 @@ Flask
 Flask-Cors
 yt-dlp
 youtube-transcript-api
-moviepy
+moviepy==1.0.3
 numpy
 opencv-python-headless
 Pillow
