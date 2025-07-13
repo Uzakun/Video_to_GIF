@@ -15,8 +15,7 @@ export default function App() {
     setGifs([]);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
-const response = await fetch(`${apiUrl}/api/generate-gifs`, {
+      const response = await fetch('https://video-to-gif-6.onrender.com/api/generate-gifs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -39,6 +38,32 @@ const response = await fetch(`${apiUrl}/api/generate-gifs`, {
     }
   };
 
+  const handleDownload = async (gifUrl, filename) => {
+    try {
+      // Fetch the GIF as a blob
+      const response = await fetch(gifUrl);
+      const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element and trigger download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download failed:', error);
+      // Fallback: open in new tab
+      window.open(gifUrl, '_blank');
+    }
+  };
+
   return (
     <div className="app-container">
       
@@ -49,7 +74,7 @@ const response = await fetch(`${apiUrl}/api/generate-gifs`, {
             AI Video to GIF
           </h1>
           <p className="subtitle">
-            Transform YouTube videos into perfect GIFs with AI-powered captions ✨
+            Transform YouTube videos into perfect GIFs with AI powered captions ✨
           </p>
           <div className="features">
             <span className="feature-item">
@@ -181,13 +206,12 @@ const response = await fetch(`${apiUrl}/api/generate-gifs`, {
                   <div className="gif-content">
                     <h3 className="gif-title">AI Generated GIF</h3>
                     <p className="gif-description">Perfect moment with smart captions</p>
-                    <a
-                      href={gif}
-                      download={`gif-${index + 1}.gif`}
+                    <button
+                      onClick={() => handleDownload(gif, `gif-${index + 1}.gif`)}
                       className="download-button"
                     >
                       📥 Download GIF
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}
