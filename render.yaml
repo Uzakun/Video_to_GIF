@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: gif-app-backend # You can change this name
+    env: python
+    plan: free
+    region: singapore # Or your chosen region
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
