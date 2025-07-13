@@ -14,8 +14,10 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
 import uuid
+# --- FIX: Ensure these imports are present ---
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+# -----------------------------------------
 
 app = Flask(__name__)
 CORS(app)
@@ -68,9 +70,6 @@ def generate_transcript_with_whisper(video_path):
         return None
 
 def find_relevant_segments(transcript, prompt, count=3):
-    """
-    UPDATED: Ensures variety by creating a larger pool of candidates before randomizing.
-    """
     try:
         print("Performing local smart search...")
         segment_texts = [s['text'] if isinstance(s, dict) else s.text for s in transcript]
@@ -80,16 +79,12 @@ def find_relevant_segments(transcript, prompt, count=3):
         
         similarities = cosine_similarity(prompt_embedding, segment_embeddings)[0]
         
-        # Pair each segment with its similarity score
         scored_segments = []
         for i, segment in enumerate(transcript):
             scored_segments.append({'segment': segment, 'score': similarities[i]})
         
-        # Sort by the highest similarity score
         scored_segments.sort(key=lambda x: x['score'], reverse=True)
         
-        # Create a pool of the top 20 most relevant segments (or fewer if video is short)
-        # This gives us a large enough set to ensure random results.
         candidate_pool = [s['segment'] for s in scored_segments[:20]]
         
         if not candidate_pool:
@@ -97,7 +92,6 @@ def find_relevant_segments(transcript, prompt, count=3):
             return random.sample(transcript, min(len(transcript), count))
 
         print(f"Found {len(candidate_pool)} potential segments. Randomly selecting {count}.")
-        # Randomly select 'count' segments from the candidate pool for variety
         return random.sample(candidate_pool, min(len(candidate_pool), count))
 
     except Exception as e:
@@ -157,7 +151,6 @@ def create_gif_from_segment(video_path, segment, output_filename):
         traceback.print_exc()
         return None
 
-# --- Reusable GIF Generation Logic ---
 def process_video_and_generate_gifs(video_path, prompt, video_id):
     transcript = get_existing_transcript(video_id) if video_id else None
     if not transcript:
@@ -173,9 +166,11 @@ def process_video_and_generate_gifs(video_path, prompt, video_id):
         return None, "No relevant segments found for that prompt."
 
     gif_paths = []
-    output_prefix = video_id if video_id else f"upload_{uuid.uuid4().hex}"
+    output_prefix = video_id if video_id else f"upload_{uuid.uuid4().hex[:6]}"
     for i, segment in enumerate(segments):
-        output_filename = os.path.join(GIF_OUTPUT_FOLDER, f"{output_prefix}_{i}.gif")
+        unique_id = uuid.uuid4().hex[:8]
+        output_filename = os.path.join(GIF_OUTPUT_FOLDER, f"{output_prefix}_{i}_{unique_id}.gif")
+        
         gif_path = create_gif_from_segment(video_path, segment, output_filename)
         if gif_path:
             gif_paths.append(gif_path)
@@ -183,7 +178,6 @@ def process_video_and_generate_gifs(video_path, prompt, video_id):
     if os.path.exists(video_path): os.remove(video_path)
     return gif_paths, None
 
-# --- Main Routes ---
 @app.route('/api/generate-gifs', methods=['POST'])
 def generate_gifs_route():
     data = request.get_json()
