@@ -29,7 +29,6 @@ export default function App() {
     try {
       let response;
       if (inputType === 'url') {
-        // --- Handle YouTube URL ---
         response = await fetch('http://127.0.0.1:5000/api/generate-gifs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -39,7 +38,6 @@ export default function App() {
           }),
         });
       } else {
-        // --- Handle File Upload ---
         const formData = new FormData();
         formData.append('prompt', prompt);
         formData.append('video', videoFile);
@@ -55,7 +53,7 @@ export default function App() {
       if (!response.ok) {
         throw new Error(data.error || 'Something went wrong on the server.');
       }
-
+      
       setGifs(data.gifs);
     } catch (err) {
       setError(err.message);
@@ -84,8 +82,7 @@ export default function App() {
 
   return (
     <div className="app-container">
-
-      {/* Header */}
+      
       <header className="header">
         <div className="header-content">
           <h1 className="main-title gradient-text">
@@ -111,14 +108,11 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="main-content">
-
-        {/* Form */}
+        
         <div className="form-container glass">
           <form onSubmit={handleSubmit} className="form">
-
-            {/* Input Group 1: Prompt */}
+            
             <div className="input-group">
               <label className="input-label">
                 🎯 What moments or text do you want?
@@ -128,25 +122,22 @@ export default function App() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="input-field"
-                // UPDATED PLACEHOLDER TEXT
                 placeholder="funny moments, epic fails, quotes..."
                 required
               />
             </div>
 
-            {/* Input Group 2: URL or Upload */}
             <div className="input-group">
-              {/* Tab Switcher */}
               <div className="tab-switcher">
-                <button
-                  type="button"
+                <button 
+                  type="button" 
                   className={`tab-button ${inputType === 'url' ? 'active' : ''}`}
                   onClick={() => setInputType('url')}
                 >
                   🎬 YouTube URL
                 </button>
-                <button
-                  type="button"
+                <button 
+                  type="button" 
                   className={`tab-button ${inputType === 'upload' ? 'active' : ''}`}
                   onClick={() => setInputType('upload')}
                 >
@@ -154,14 +145,13 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Conditional Inputs */}
               {inputType === 'url' ? (
                 <input
                   type="url"
                   value={youtubeUrl}
                   onChange={handleUrlChange}
                   className="input-field"
-                  placeholder="https://www.youtube.com/watch?v=ctQMqqEo4G8..."
+                  placeholder="https://www.youtube.com/watch?v=6zr73ZeLK4I..."
                   required={inputType === 'url'}
                 />
               ) : (
@@ -181,7 +171,6 @@ export default function App() {
               )}
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -199,7 +188,6 @@ export default function App() {
           </form>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="error-container">
             <div className="error-box">
@@ -211,7 +199,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Loading */}
         {isLoading && (
           <div className="loading-section">
             <div className="loading-card glass-card">
@@ -222,35 +209,36 @@ export default function App() {
           </div>
         )}
 
-        {/* Results */}
         {gifs.length > 0 && (
           <div className="results-section animate-fade-up">
             <div className="results-header">
               <h2 className="results-title gradient-text-green">
-                Your GIFs are Ready!
+              Your GIFs are Ready!
               </h2>
               <p className="results-subtitle">
                 {gifs.length} amazing GIFs created just for you
               </p>
             </div>
-
+            
             <div className="gif-grid">
               {gifs.map((gif, index) => (
-                <div
-                  key={index}
+                <div 
+                  key={index} 
                   className="gif-card glass-card"
                 >
                   <div className="gif-image-container">
-                    <img
-                      src={gif}
-                      alt={`GIF ${index + 1}`}
+                    {/* --- FIX: Add a unique timestamp to the URL to force reload --- */}
+                    <img 
+                      src={`${gif}?t=${new Date().getTime()}`} 
+                      alt={`GIF ${index + 1}`} 
                       className="gif-image"
                     />
+                    {/* ----------------------------------------------------------------- */}
                     <div className="gif-number">
                       #{index + 1}
                     </div>
                   </div>
-
+                  
                   <div className="gif-content">
                     <h3 className="gif-title">AI Generated GIF</h3>
                     <p className="gif-description">Perfect moment with smart captions</p>
