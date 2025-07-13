@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 import textwrap
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=['*'])
 
 # --- Configuration ---
 TEMP_VIDEO_FOLDER = 'temp_videos'
