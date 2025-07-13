@@ -4,9 +4,21 @@ import { useState } from 'react';
 export default function App() {
   const [prompt, setPrompt] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [videoFile, setVideoFile] = useState(null);
+  const [inputType, setInputType] = useState('url'); // 'url' or 'upload'
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [gifs, setGifs] = useState([]);
+
+  const handleFileChange = (e) => {
+    setVideoFile(e.target.files[0]);
+    setYoutubeUrl(''); // Clear the other input
+  };
+
+  const handleUrlChange = (e) => {
+    setYoutubeUrl(e.target.value);
+    setVideoFile(null); // Clear the other input
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,21 +27,35 @@ export default function App() {
     setGifs([]);
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/generate-gifs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: prompt,
-          youtube_url: youtubeUrl,
-        }),
-      });
+      let response;
+      if (inputType === 'url') {
+        // --- Handle YouTube URL ---
+        response = await fetch('http://127.0.0.1:5000/api/generate-gifs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: prompt,
+            youtube_url: youtubeUrl,
+          }),
+        });
+      } else {
+        // --- Handle File Upload ---
+        const formData = new FormData();
+        formData.append('prompt', prompt);
+        formData.append('video', videoFile);
+
+        response = await fetch('http://127.0.0.1:5000/api/generate-gifs-from-upload', {
+          method: 'POST',
+          body: formData,
+        });
+      }
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || 'Something went wrong on the server.');
       }
-      
+
       setGifs(data.gifs);
     } catch (err) {
       setError(err.message);
@@ -38,9 +64,27 @@ export default function App() {
     }
   };
 
+  const handleDownload = async (gifUrl, filename) => {
+    try {
+      const response = await fetch(gifUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download failed:', error);
+      window.open(gifUrl, '_blank');
+    }
+  };
+
   return (
     <div className="app-container">
-      
+
       {/* Header */}
       <header className="header">
         <div className="header-content">
@@ -48,7 +92,7 @@ export default function App() {
             AI Video to GIF
           </h1>
           <p className="subtitle">
-            Transform YouTube videos into perfect GIFs with AI-powered captions ✨
+            Transform videos into perfect GIFs with AI powered captions ✨
           </p>
           <div className="features">
             <span className="feature-item">
@@ -69,40 +113,72 @@ export default function App() {
 
       {/* Main Content */}
       <main className="main-content">
-        
+
         {/* Form */}
         <div className="form-container glass">
           <form onSubmit={handleSubmit} className="form">
-            
-            {/* Inputs */}
-            <div className="input-grid">
-              <div className="input-group">
-                <label className="input-label">
-                  🎯 What moments do you want?
-                </label>
-                <input
-                  type="text"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  className="input-field"
-                  placeholder="funny moments, epic fails, quotes..."
-                  required
-                />
-              </div>
-              
-              <div className="input-group">
-                <label className="input-label">
+
+            {/* Input Group 1: Prompt */}
+            <div className="input-group">
+              <label className="input-label">
+                🎯 What moments or text do you want?
+              </label>
+              <input
+                type="text"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="input-field"
+                // UPDATED PLACEHOLDER TEXT
+                placeholder="funny moments, epic fails, quotes..."
+                required
+              />
+            </div>
+
+            {/* Input Group 2: URL or Upload */}
+            <div className="input-group">
+              {/* Tab Switcher */}
+              <div className="tab-switcher">
+                <button
+                  type="button"
+                  className={`tab-button ${inputType === 'url' ? 'active' : ''}`}
+                  onClick={() => setInputType('url')}
+                >
                   🎬 YouTube URL
-                </label>
+                </button>
+                <button
+                  type="button"
+                  className={`tab-button ${inputType === 'upload' ? 'active' : ''}`}
+                  onClick={() => setInputType('upload')}
+                >
+                  💻 Upload Video
+                </button>
+              </div>
+
+              {/* Conditional Inputs */}
+              {inputType === 'url' ? (
                 <input
                   type="url"
                   value={youtubeUrl}
-                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  onChange={handleUrlChange}
                   className="input-field"
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  required
+                  placeholder="https://www.youtube.com/watch?v=ctQMqqEo4G8..."
+                  required={inputType === 'url'}
                 />
-              </div>
+              ) : (
+                <div className="file-input-container">
+                  <input
+                    type="file"
+                    id="video-upload"
+                    className="file-input"
+                    onChange={handleFileChange}
+                    accept="video/mp4,video/mov,video/webm"
+                    required={inputType === 'upload'}
+                  />
+                  <label htmlFor="video-upload" className="file-input-label">
+                    {videoFile ? `Selected: ${videoFile.name}` : '📂 Choose a video file...'}
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -151,42 +227,39 @@ export default function App() {
           <div className="results-section animate-fade-up">
             <div className="results-header">
               <h2 className="results-title gradient-text-green">
-              Your GIFs are Ready!
+                Your GIFs are Ready!
               </h2>
               <p className="results-subtitle">
-                {gifs.length} amazing GIFs created with AI-powered captions
+                {gifs.length} amazing GIFs created just for you
               </p>
             </div>
-            
+
             <div className="gif-grid">
               {gifs.map((gif, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="gif-card glass-card"
                 >
-                  {/* GIF Image */}
                   <div className="gif-image-container">
-                    <img 
-                      src={gif} 
-                      alt={`GIF ${index + 1}`} 
+                    <img
+                      src={gif}
+                      alt={`GIF ${index + 1}`}
                       className="gif-image"
                     />
                     <div className="gif-number">
                       #{index + 1}
                     </div>
                   </div>
-                  
-                  {/* Download Button */}
+
                   <div className="gif-content">
                     <h3 className="gif-title">AI Generated GIF</h3>
                     <p className="gif-description">Perfect moment with smart captions</p>
-                    <a
-                      href={gif}
-                      download={`gif-${index + 1}.gif`}
+                    <button
+                      onClick={() => handleDownload(gif, `gif-${index + 1}.gif`)}
                       className="download-button"
                     >
                       📥 Download GIF
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}
