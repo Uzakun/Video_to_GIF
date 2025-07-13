@@ -4,6 +4,6 @@ yt-dlp==2025.6.30
 youtube-transcript-api==1.1.1
 moviepy==1.0.3
 numpy==1.24.3
-opencv-python==4.12.0.88
+opencv-python-headless==4.12.0.88
 Pillow==9.5.0
 gunicorn==23.0.0
