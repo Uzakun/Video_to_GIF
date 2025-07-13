@@ -466,12 +466,20 @@ body {
   text-decoration: none;
   text-align: center;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
 }
 
 .download-button:hover {
   background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
   transform: scale(1.05);
   box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5);
+}
+
+.download-button:active {
+  transform: scale(0.98);
 }
 
 /* Footer */
@@ -547,4 +555,62 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+
+
+/* index.css (additions for new components) */
+
+/* Tab Switcher */
+.tab-switcher {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  padding: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.tab-button.active {
+  background: #60a5fa;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* File Input */
+.file-input-container {
+  position: relative;
+}
+
+.file-input {
+  display: none; /* Hide the default input */
+}
+
+.file-input-label {
+  display: block;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  color: #9ca3af;
+  padding: 2rem 1rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.file-input-label:hover {
+  border-color: #60a5fa;
+  color: #60a5fa;
 }
