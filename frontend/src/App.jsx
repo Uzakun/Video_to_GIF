@@ -27,12 +27,11 @@ export default function App() {
     setGifs([]);
 
     try {
+      const apiUrl = import.meta.env.VITE_API_URL;
       let response;
+
       if (inputType === 'url') {
-
-        const apiUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${apiUrl}/api/generate-gifs`, {
-
+        response = await fetch(`${apiUrl}/api/generate-gifs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -45,10 +44,12 @@ export default function App() {
         formData.append('prompt', prompt);
         formData.append('video', videoFile);
 
-        response = await fetch('http://127.0.0.1:5000/api/generate-gifs-from-upload', {
+        // --- THIS IS THE CORRECTED LINE ---
+        response = await fetch(`${apiUrl}/api/generate-gifs-from-upload`, {
           method: 'POST',
           body: formData,
         });
+        // ------------------------------------
       }
 
       const data = await response.json();
@@ -154,7 +155,7 @@ export default function App() {
                   value={youtubeUrl}
                   onChange={handleUrlChange}
                   className="input-field"
-                  placeholder="https://www.youtube.com/watch?v=6zr73ZeLK4I..."
+                  placeholder="https://www.youtube.com/watch?v=..."
                   required={inputType === 'url'}
                 />
               ) : (
@@ -230,13 +231,11 @@ export default function App() {
                   className="gif-card glass-card"
                 >
                   <div className="gif-image-container">
-                    {/* --- FIX: Add a unique timestamp to the URL to force reload --- */}
                     <img
                       src={`${gif}?t=${new Date().getTime()}`}
                       alt={`GIF ${index + 1}`}
                       className="gif-image"
                     />
-                    {/* ----------------------------------------------------------------- */}
                     <div className="gif-number">
                       #{index + 1}
                     </div>
