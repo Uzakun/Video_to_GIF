@@ -27,11 +27,9 @@ export default function App() {
     setGifs([]);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
       let response;
-
       if (inputType === 'url') {
-        response = await fetch(`${apiUrl}/api/generate-gifs`, {
+        response = await fetch('http://127.0.0.1:5000/api/generate-gifs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -44,12 +42,10 @@ export default function App() {
         formData.append('prompt', prompt);
         formData.append('video', videoFile);
 
-        // --- THIS IS THE CORRECTED LINE ---
-        response = await fetch(`${apiUrl}/api/generate-gifs-from-upload`, {
+        response = await fetch('http://127.0.0.1:5000/api/generate-gifs-from-upload', {
           method: 'POST',
           body: formData,
         });
-        // ------------------------------------
       }
 
       const data = await response.json();
@@ -57,7 +53,7 @@ export default function App() {
       if (!response.ok) {
         throw new Error(data.error || 'Something went wrong on the server.');
       }
-
+      
       setGifs(data.gifs);
     } catch (err) {
       setError(err.message);
@@ -86,7 +82,7 @@ export default function App() {
 
   return (
     <div className="app-container">
-
+      
       <header className="header">
         <div className="header-content">
           <h1 className="main-title gradient-text">
@@ -113,10 +109,10 @@ export default function App() {
       </header>
 
       <main className="main-content">
-
+        
         <div className="form-container glass">
           <form onSubmit={handleSubmit} className="form">
-
+            
             <div className="input-group">
               <label className="input-label">
                 🎯 What moments or text do you want?
@@ -133,15 +129,15 @@ export default function App() {
 
             <div className="input-group">
               <div className="tab-switcher">
-                <button
-                  type="button"
+                <button 
+                  type="button" 
                   className={`tab-button ${inputType === 'url' ? 'active' : ''}`}
                   onClick={() => setInputType('url')}
                 >
                   🎬 YouTube URL
                 </button>
-                <button
-                  type="button"
+                <button 
+                  type="button" 
                   className={`tab-button ${inputType === 'upload' ? 'active' : ''}`}
                   onClick={() => setInputType('upload')}
                 >
@@ -155,7 +151,7 @@ export default function App() {
                   value={youtubeUrl}
                   onChange={handleUrlChange}
                   className="input-field"
-                  placeholder="https://www.youtube.com/watch?v=..."
+                  placeholder="https://www.youtube.com/watch?v=6zr73ZeLK4I..."
                   required={inputType === 'url'}
                 />
               ) : (
@@ -217,30 +213,32 @@ export default function App() {
           <div className="results-section animate-fade-up">
             <div className="results-header">
               <h2 className="results-title gradient-text-green">
-                Your GIFs are Ready!
+              Your GIFs are Ready!
               </h2>
               <p className="results-subtitle">
                 {gifs.length} amazing GIFs created just for you
               </p>
             </div>
-
+            
             <div className="gif-grid">
               {gifs.map((gif, index) => (
-                <div
-                  key={index}
+                <div 
+                  key={index} 
                   className="gif-card glass-card"
                 >
                   <div className="gif-image-container">
-                    <img
-                      src={`${gif}?t=${new Date().getTime()}`}
-                      alt={`GIF ${index + 1}`}
+                    {/* --- FIX: Add a unique timestamp to the URL to force reload --- */}
+                    <img 
+                      src={`${gif}?t=${new Date().getTime()}`} 
+                      alt={`GIF ${index + 1}`} 
                       className="gif-image"
                     />
+                    {/* ----------------------------------------------------------------- */}
                     <div className="gif-number">
                       #{index + 1}
                     </div>
                   </div>
-
+                  
                   <div className="gif-content">
                     <h3 className="gif-title">AI Generated GIF</h3>
                     <p className="gif-description">Perfect moment with smart captions</p>

@@ -184,34 +184,16 @@ def generate_gifs_route():
     prompt, youtube_url = data.get('prompt'), data.get('youtube_url')
     if not prompt or not youtube_url:
         return jsonify({'error': 'Prompt and YouTube URL are required.'}), 400
-
     try:
-        # --- REQUIRED CHANGE: Robust yt-dlp options to prevent blocking ---
-        ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'format': 'bestvideo[ext=mp4][height<=480]+bestaudio[ext=m4a]/best[ext=mp4][height<=480]/best',
-            'outtmpl': os.path.join(TEMP_VIDEO_FOLDER, '%(id)s.%(ext)s'),
-            'cookiefile': 'cookies.txt',  # Use cookies if they exist
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'Accept-Language': 'en-US,en;q=0.9',
-            },
-            'extractor_args': {'youtube': {'player_client': ['web']}}
-        }
-        # -----------------------------------------------------------------
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
             info = ydl.extract_info(youtube_url, download=False)
-            video_id = info['id']
-            # Now download the video using the same robust options
+            video_id = info.get('id')
+        
+        video_path_template = os.path.join(TEMP_VIDEO_FOLDER, f"{video_id}.%(ext)s")
+        with yt_dlp.YoutubeDL({'format': 'best[ext=mp4][height<=480]', 'outtmpl': video_path_template}) as ydl:
             ydl.download([youtube_url])
-
-        # Find the downloaded file, as the extension can vary
-        video_path = next((os.path.join(TEMP_VIDEO_FOLDER, f) for f in os.listdir(TEMP_VIDEO_FOLDER) if f.startswith(video_id)), None)
-        if not video_path:
-             return jsonify({'error': 'Video download failed.'}), 500
+        
+        video_path = video_path_template.replace('.%(ext)s', '.mp4')
         
         gif_paths, error = process_video_and_generate_gifs(video_path, prompt, video_id)
         if error:
@@ -220,16 +202,9 @@ def generate_gifs_route():
         base_url = request.host_url
         gif_urls = [f"{base_url}static/gifs/{os.path.basename(path)}" for path in gif_paths]
         return jsonify({'gifs': gif_urls})
-
-    # --- REQUIRED CHANGE: Specific error handling for download failures ---
-    except yt_dlp.utils.DownloadError as e:
-        print(f"--- YT-DLP DOWNLOAD ERROR --- : {e}")
-        return jsonify({'error': 'This video is unavailable or blocked by YouTube. Please try a different one.'}), 400
     except Exception:
         traceback.print_exc()
         return jsonify({'error': 'A server error occurred.'}), 500
-    # ---------------------------------------------------------------------
-
 
 @app.route('/api/generate-gifs-from-upload', methods=['POST'])
 def generate_gifs_from_upload_route():
